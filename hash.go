@@ -15,9 +15,24 @@ const (
 	bufferSize = 0x4000
 )
 
-var (
-	uuidPattern = regexp.MustCompile("([0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12})")
-)
+type patternID struct {
+	pattern *regexp.Regexp
+	prefix  string
+	suffix  string
+}
+
+var patternIDs = []patternID{
+	{
+		regexp.MustCompile("([0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12})"),
+		"#",
+		"^EBOK",
+	},
+	{
+		regexp.MustCompile("\x12(B[0-9][0-9A-Z]{5,})"),
+		"#",
+		"^EBOK",
+	},
+}
 
 func bookHash(path string) string {
 	switch {
@@ -41,19 +56,21 @@ func mobiHash(path string) string {
 	data := make([]byte, bufferSize)
 	n := readMax(data, path)
 	data = data[:n]
-	hash := findUUID(data)
-	if len(hash) == 0 {
-		return pathHash(path)
+	hash := findPattern(data)
+	if len(hash) > 0 {
+		return hash
 	}
-	return "#" + hash + "^EBOK"
+	return pathHash(path)
 }
 
-func findUUID(data []byte) string {
-	res := uuidPattern.FindSubmatch(data)
-	if len(res) < 2 {
-		return ""
+func findPattern(data []byte) string {
+	for _, pid := range patternIDs {
+		res := pid.pattern.FindSubmatch(data)
+		if len(res) > 1 {
+			return pid.prefix + string(res[1]) + pid.suffix
+		}
 	}
-	return string(res[1])
+	return ""
 }
 
 func readMax(data []byte, path string) int {
