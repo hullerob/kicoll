@@ -45,7 +45,9 @@ func bookHash(path string) string {
 
 func pathHash(path string) string {
 	if !strings.HasPrefix(path, "/mnt/us/") {
-		path = "/mnt/us/" + path
+		// strip non-standard prefix from path and replace it with /mnt/us
+		i := len(KindleDir) + 1
+		path = "/mnt/us/" + path[i:]
 	}
 	h := sha1.Sum([]byte(path))
 	hs := hex.EncodeToString(h[:])
