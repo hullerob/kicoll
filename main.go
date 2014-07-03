@@ -10,7 +10,10 @@ import (
 )
 
 var (
-	KindleDir            string
+	// KindleDir is path to kindle user directory.
+	KindleDir string
+
+	// KindleCollectionFile is name of file where collections are stored.
 	KindleCollectionFile string
 	PreserveLastAccess   bool
 )
@@ -46,6 +49,7 @@ func main() {
 	}
 }
 
+// loadOldCollections reads collection file to preserve lastAccess.
 func loadOldCollections(path string) map[string]Collection {
 	data, err := ioutil.ReadFile(path)
 	if os.IsNotExist(err) {

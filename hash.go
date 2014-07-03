@@ -12,6 +12,8 @@ import (
 )
 
 const (
+	// ID in .mobi should be close to beginning of file.
+	// This is length of searched data.
 	bufferSize = 0x4000
 )
 
@@ -21,6 +23,7 @@ type patternID struct {
 	suffix  string
 }
 
+// ID patterns for searching in .mobi files
 var patternIDs = []patternID{
 	{
 		regexp.MustCompile("([0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12})"),
@@ -34,6 +37,7 @@ var patternIDs = []patternID{
 	},
 }
 
+// bookHash returns hash/ID by which kindle references books
 func bookHash(path string) string {
 	switch {
 	case strings.HasSuffix(path, ".mobi"):
@@ -43,6 +47,7 @@ func bookHash(path string) string {
 	}
 }
 
+// pathHash computes sha1 hash of filepath.
 func pathHash(path string) string {
 	if !strings.HasPrefix(path, "/mnt/us/") {
 		// strip non-standard prefix from path and replace it with /mnt/us
@@ -54,6 +59,7 @@ func pathHash(path string) string {
 	return "*" + hs
 }
 
+// mobiHash returns hash/ID for .mobi files.
 func mobiHash(path string) string {
 	data := make([]byte, bufferSize)
 	n := readMax(data, path)
@@ -65,6 +71,7 @@ func mobiHash(path string) string {
 	return pathHash(path)
 }
 
+// findPattern searches for ID pattern in block of data.
 func findPattern(data []byte) string {
 	for _, pid := range patternIDs {
 		res := pid.pattern.FindSubmatch(data)
@@ -75,6 +82,7 @@ func findPattern(data []byte) string {
 	return ""
 }
 
+// readMax reads maximum available data from file, up to len(data).
 func readMax(data []byte, path string) int {
 	f, err := os.Open(path)
 	n := 0

@@ -12,22 +12,30 @@ import (
 )
 
 const (
+	// CollectionNameSuffix is suffix of collection name in collections.json
 	CollectionNameSuffix = "@en-US"
-	CollectionNameFile   = ".collection.name"
+
+	// CollectionNameFile is name of file where collections are named.
+	CollectionNameFile = ".collection.name"
 )
 
+// Suffixes of files considered for collections.
 var AllowedFiles = []string{".pdf", ".mobi"}
 
+// Collection is internal representation of collection.
 type Collection struct {
 	Items      []string `json:"items"`
 	LastAccess int      `json:"lastAccess"`
 }
 
+// EncodeCollections converts internal representation of collections
+// to JSON format used by Kindle.
 func EncodeCollections(collections map[string]Collection) ([]byte, error) {
 	b, err := json.Marshal(collections)
 	return b, err
 }
 
+// DecodeCollections is opposite of EncodeCollections.
 func DecodeCollections(data []byte) (map[string]Collection, error) {
 	col := make(map[string]Collection)
 	err := json.Unmarshal(data, &col)
@@ -37,6 +45,7 @@ func DecodeCollections(data []byte) (map[string]Collection, error) {
 	return col, nil
 }
 
+// FindFiles returns map of filepath->collections
 func FindFiles(path string) map[string][]string {
 	files := make(map[string][]string)
 	col := CollectionName(nil, path+"/documents")
@@ -44,6 +53,7 @@ func FindFiles(path string) map[string][]string {
 	return files
 }
 
+// DirWalk walks directory tree and associates files with collections.
 func DirWalk(col []string, path string, files map[string][]string) {
 	fis, err := ioutil.ReadDir(path)
 	if err != nil {
@@ -70,6 +80,8 @@ func DirWalk(col []string, path string, files map[string][]string) {
 	}
 }
 
+// CollectionName reads collection names for given directory and replaces
+// collection names from parent directory if it finds any.
 func CollectionName(old []string, path string) []string {
 	b, err := ioutil.ReadFile(path + "/" + CollectionNameFile)
 	if os.IsNotExist(err) {
@@ -90,6 +102,7 @@ func CollectionName(old []string, path string) []string {
 	return ncols
 }
 
+// AllowedFile checks if file is to be considered for addition to collection.
 func AllowedFile(name string) bool {
 	for _, s := range AllowedFiles {
 		if strings.HasSuffix(name, s) {
@@ -99,6 +112,8 @@ func AllowedFile(name string) bool {
 	return false
 }
 
+// BuildCollection converts filepaths to hash/ID and adds them to collection.
+// It also scans existing collections to preserve lastAccess.
 func BuildCollection(files map[string][]string,
 	old map[string]Collection) map[string]Collection {
 	collections := make(map[string]Collection)
