@@ -66,7 +66,7 @@ func DirWalk(col, path string, files map[string][]string) {
 			continue
 		}
 		name := path + "/" + fi.Name()
-		files[col] = append(files[col], name)
+		files[name] = append(files[name], col)
 	}
 }
 
@@ -99,18 +99,24 @@ func AllowedFile(name string) bool {
 func BuildCollection(files map[string][]string,
 	old map[string]Collection) map[string]Collection {
 	collections := make(map[string]Collection)
-	for collectionName, files := range files {
-		items := make([]string, 0, len(files))
-		for _, file := range files {
-			hash := bookHash(file)
+	hashCache := make(map[string]string)
+	for file, colls := range files {
+		for _, collectionName := range colls {
+			cname := collectionName + CollectionNameSuffix
+			hash := hashCache[file]
+			if len(hash) == 0 {
+				hash = bookHash(file)
+				hashCache[file] = hash
+			}
+			items := collections[cname].Items
 			items = append(items, hash)
+			collections[cname] = Collection{Items: items}
 		}
-		cname := collectionName + CollectionNameSuffix
-		la := 0
-		if old != nil {
-			la = old[cname].LastAccess
+	}
+	if old != nil {
+		for cname, v := range collections {
+			v.LastAccess = old[cname].LastAccess
 		}
-		collections[cname] = Collection{Items: items, LastAccess: la}
 	}
 	return collections
 }
