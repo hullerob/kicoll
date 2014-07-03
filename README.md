@@ -33,9 +33,12 @@ After regenerating `collections.json`, restart is needed.
 
     cd documents/somedir
     echo 'My New Collection' > .collection.name
+    echo 'Second Collection' >> .collection.name
 
-This will put everything in directory and subdirectories to collection.
-Only first line is considered.
+This will put everything in directory and subdirectories to collections
+in file. One collection per line, empty lines are ignored.
+If there is other `.collection.name` deeper in directory tree,
+that one takes precedence.
 
 ## Why
 
