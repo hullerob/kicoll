@@ -77,7 +77,7 @@ func CollectionName(old, path string) string {
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "can not open '%s': %v\n",
-			path+"/.collection.name", err)
+			path+"/"+CollectionNameFile, err)
 		return old
 	}
 	by := bytes.SplitN(b, []byte("\n"), 2)
