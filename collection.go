@@ -39,12 +39,12 @@ func DecodeCollections(data []byte) (map[string]Collection, error) {
 
 func FindFiles(path string) map[string][]string {
 	files := make(map[string][]string)
-	col := CollectionName("", path+"/documents")
+	col := CollectionName(nil, path+"/documents")
 	DirWalk(col, path+"/documents", files)
 	return files
 }
 
-func DirWalk(col, path string, files map[string][]string) {
+func DirWalk(col []string, path string, files map[string][]string) {
 	fis, err := ioutil.ReadDir(path)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error reading directory '%s': %v\n", path, err)
@@ -62,15 +62,15 @@ func DirWalk(col, path string, files map[string][]string) {
 		if !AllowedFile(fi.Name()) {
 			continue
 		}
-		if col == "" {
+		if len(col) == 0 {
 			continue
 		}
 		name := path + "/" + fi.Name()
-		files[name] = append(files[name], col)
+		files[name] = append(files[name], col...)
 	}
 }
 
-func CollectionName(old, path string) string {
+func CollectionName(old []string, path string) []string {
 	b, err := ioutil.ReadFile(path + "/" + CollectionNameFile)
 	if os.IsNotExist(err) {
 		return old
@@ -80,11 +80,14 @@ func CollectionName(old, path string) string {
 			path+"/"+CollectionNameFile, err)
 		return old
 	}
-	by := bytes.SplitN(b, []byte("\n"), 2)
-	if len(by) < 1 {
-		return old
+	by := bytes.Split(b, []byte("\n"))
+	ncols := make([]string, 0, len(by))
+	for _, line := range by {
+		if len(line) > 0 {
+			ncols = append(ncols, string(line))
+		}
 	}
-	return string(by[0])
+	return ncols
 }
 
 func AllowedFile(name string) bool {
