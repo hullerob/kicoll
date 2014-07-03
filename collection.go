@@ -28,6 +28,15 @@ func EncodeCollections(collections map[string]Collection) ([]byte, error) {
 	return b, err
 }
 
+func DecodeCollections(data []byte) (map[string]Collection, error) {
+	col := make(map[string]Collection)
+	err := json.Unmarshal(data, &col)
+	if err != nil {
+		return nil, err
+	}
+	return col, nil
+}
+
 func FindFiles(path string) map[string][]string {
 	files := make(map[string][]string)
 	col := CollectionName("", path+"/documents")
@@ -87,7 +96,8 @@ func AllowedFile(name string) bool {
 	return false
 }
 
-func BuildCollection(files map[string][]string) map[string]Collection {
+func BuildCollection(files map[string][]string,
+	old map[string]Collection) map[string]Collection {
 	collections := make(map[string]Collection)
 	for collectionName, files := range files {
 		items := make([]string, 0, len(files))
@@ -95,8 +105,12 @@ func BuildCollection(files map[string][]string) map[string]Collection {
 			hash := bookHash(file)
 			items = append(items, hash)
 		}
-		collections[collectionName+CollectionNameSuffix] =
-			Collection{Items: items}
+		cname := collectionName + CollectionNameSuffix
+		la := 0
+		if old != nil {
+			la = old[cname].LastAccess
+		}
+		collections[cname] = Collection{Items: items, LastAccess: la}
 	}
 	return collections
 }
