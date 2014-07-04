@@ -6,6 +6,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"os"
 	"regexp"
 	"strings"
@@ -85,19 +86,14 @@ func findPattern(data []byte) string {
 // readMax reads maximum available data from file, up to len(data).
 func readMax(data []byte, path string) int {
 	f, err := os.Open(path)
-	n := 0
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "can not open file: %v\n", err)
 		return 0
 	}
 	defer f.Close()
-	for {
-		nn, _ := f.Read(data)
-		data = data[nn:]
-		n += nn
-		if nn == 0 {
-			break
-		}
+	n, err := io.ReadFull(f, data)
+	if err != nil && err != io.ErrUnexpectedEOF {
+		fmt.Fprintf(os.Stderr, "error reading file '%s': %v\n", path, err)
 	}
 	return n
 }
