@@ -25,7 +25,7 @@ var AllowedFiles = []string{".pdf", ".mobi"}
 // Collection is internal representation of collection.
 type Collection struct {
 	Items      []string `json:"items"`
-	LastAccess int      `json:"lastAccess"`
+	LastAccess int64    `json:"lastAccess"`
 }
 
 // EncodeCollections converts internal representation of collections
