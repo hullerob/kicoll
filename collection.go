@@ -132,8 +132,12 @@ func BuildCollection(files map[string][]string,
 		}
 	}
 	if old != nil {
-		for cname, v := range collections {
-			v.LastAccess = old[cname].LastAccess
+		for cname, v := range old {
+			if _, ok := collections[cname]; ok {
+				co := collections[cname]
+				co.LastAccess = v.LastAccess
+				collections[cname] = co
+			}
 		}
 	}
 	return collections
