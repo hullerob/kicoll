@@ -39,7 +39,7 @@ func main() {
 	}
 	file, err := os.Create(KindleDir + "/" + KindleCollectionFile)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "con not open collection file: %v\n", err)
+		fmt.Fprintf(os.Stderr, "can not open collection file: %v\n", err)
 		return
 	}
 	defer file.Close()
